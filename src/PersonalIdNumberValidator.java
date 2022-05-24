@@ -29,6 +29,8 @@ public class PersonalIdNumberValidator extends StringValidator {
             return false;
         if(super.isBlank())
             return false;
+        if(!validLength())
+            return false;
         if(!validFormat())
             return false;
         // Remove hyphens
@@ -99,6 +101,29 @@ public class PersonalIdNumberValidator extends StringValidator {
     }
 
     /**
+     * This is a method that checks the 'length' of the personal id number.
+     * A lot of assumptions were made here about the 'length',
+     * but it's just a "proof of concept", so I guess it's fine.
+     * @return boolean : returns true if the 'format' is valid, otherwise it returns false.
+     */
+    private boolean validLength(){
+        /*
+            Assumption: a personal id number is allowed to have four different formats:
+                * dddddddddddd | dddddddd-dddd | dddddddddd | dddddd-dddd
+                    regex: ^(\d{8}|\d{6})\-?\d{4}$
+                    max-length: 13
+                    min-length: 10
+        */
+        int MAX_LENGTH = 13;
+        int MIN_LENGTH = 10;
+        if((personalIdNumber.length() > MAX_LENGTH) || (personalIdNumber.length() < MIN_LENGTH)){
+            Logger.log("Invalid length: input = " + personalIdNumber + ", length = " + personalIdNumber.length(), DEBUG);
+            return false;
+        }
+        return  true;
+    }
+
+    /**
      * This is a method that checks the 'format' of the personal id number.
      * A lot of assumptions were made here about the 'format' (regex was mainly used - but also length-check),
      * but it's just a "proof of concept", so I guess it's fine.
@@ -112,13 +137,6 @@ public class PersonalIdNumberValidator extends StringValidator {
                     max-length: 13
                     min-length: 10
          */
-        int MAX_LENGTH = 13;
-        int MIN_LENGTH = 10;
-        // if the input is larger than MAX_LENGTH, we don't need to do any regex-checks, we can just terminate (return false) at this point.
-        if((personalIdNumber.length() > MAX_LENGTH) || (personalIdNumber.length() < MIN_LENGTH)){
-            Logger.log("Invalid length: input = " + personalIdNumber + ", length = " + personalIdNumber.length(), DEBUG);
-            return false;
-        }
         boolean valid = Pattern.compile("^(\\d{8}|\\d{6})\\-?\\d{4}$").matcher(personalIdNumber).matches();
         if(!valid)
             Logger.log("Invalid format: " + personalIdNumber, DEBUG);

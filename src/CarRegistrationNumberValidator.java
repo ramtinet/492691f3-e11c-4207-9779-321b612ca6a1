@@ -1,4 +1,8 @@
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 /*
     Wikipedia was used to learn more about car registration numbers (i.e., blacklists, requirements and rules).
@@ -58,6 +62,8 @@ public class CarRegistrationNumberValidator extends StringValidator {
             return false;
         if(super.isBlank())
             return false;
+        if(!validLength())
+            return false;
         if(!validFormat())
             return false;
         String str = carRegistrationNumber;
@@ -82,16 +88,38 @@ public class CarRegistrationNumberValidator extends StringValidator {
      * @return boolean : returns true if the string is black-listed, otherwise it returns false.
      */
     private boolean isBlackListed(String str){
-        boolean isBlackListed = false;
-        for(int i = 0; i < BLACKLIST.length && (!isBlackListed); i++){
-            String blackListed = BLACKLIST[i];
-            if (blackListed.equals(str.toUpperCase()))
-                isBlackListed = true;
-        }
+        boolean isBlackListed = Arrays.stream(BLACKLIST)
+                .sequential()
+                .anyMatch(blackListed -> blackListed.equals(str.toUpperCase()));
         if(isBlackListed){
             Logger.log(str + " is blacklisted", DEBUG);
         }
         return isBlackListed;
+    }
+
+    /**
+     * This is a method that checks the 'length' of the car-registration-number.
+     * A lot of assumptions were made here about the 'length',
+     * but it's just a "proof of concept", so I guess it's fine.
+     * @return boolean : returns true if the 'format' is valid, otherwise it returns false.
+     */
+    private boolean validLength(){
+        /*
+        Assumption: a car registration number is allowed to have four different formats (lowercase letters are allowed)
+                * formats: ccc-ddd | ccc-ddc | cccddd | cccddc
+                    * regex: ^[a-zA-Z]{3}\-?\d{2}(\d|[a-zA-Z])$
+                    * example: ABC-123
+                    * max-length: 7
+                    * min-length: 6
+        */
+        int MAX_LENGTH = 7;
+        int MIN_LENGTH = 6;
+        // if the input is larger than MAX_LENGTH, we don't need to do any regex-checks, we can just terminate (return false) at this point.
+        if((carRegistrationNumber.length() > MAX_LENGTH) || (carRegistrationNumber.length() < MIN_LENGTH)){
+            Logger.log("Invalid length: input = " + carRegistrationNumber + ", length = " + carRegistrationNumber.length(), DEBUG);
+            return false;
+        }
+        return  true;
     }
 
     /**
